@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Log Manager</title>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <!-- Bootstrap 3.3.7 -->
+  <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" href="../static/css/bootstrap.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" th:href="@{/css/font-awesome.min.css}" href="../static/css/font-awesome.min.css">
+  <!-- Ionicons -->
+  <link rel="stylesheet" th:href="@{/Ionicons/css/ionicons.min.css}" href="../static/Ionicons/css/ionicons.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" th:href="@{/css/AdminLTE.min.css}" href="../static/css/AdminLTE.min.css">
+  <!-- AdminLTE Skins -->
+  <link rel="stylesheet" th:href="@{/css/skin-blue.css}" href="../static/css/skin-blue.css">
+  <!-- Google Font -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+  <link rel="stylesheet" th:href="@{/bootstrap-table/src/bootstrap-table.css}" href="../../static/bootstrap-table/src/bootstrap-table.css">
+  
+  <script>
+	function iconListData(value) {
+	    return '<a href="javascript:loadLogData('+value+');" title="Carregar registros desse log"><i class="fa fa-reorder text-blue"/></a>';
+	}
+	
+	function iconDelete(value) {
+	    return '<a href="javascript:removeLog('+value+')" onclick="return confirm(\'Tem certeza que deseja apagar esse log e todos os seus registros?\')" title="Apagar Log"><i class="fa fa-trash text-red" /></a>';
+	}
+  </script>
+</head>
+<!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
+<body class="hold-transition skin-blue layout-top-nav">
+<div class="wrapper">
+
+  <header class="main-header">
+    <nav class="navbar navbar-static-top">
+      <div class="container">
+        <div class="navbar-header">
+          <a href="../../index2.html" class="navbar-brand"><b>LOG</b> Manager</a>
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse">
+            <i class="fa fa-bars"></i>
+          </button>
+        </div>
+
+        <!-- Navbar Right Menu -->
+        <div class="navbar-custom-menu">
+          <ul class="nav navbar-nav">
+
+            <!-- User Account Menu -->
+            <li class="dropdown user user-menu">
+              <!-- Menu Toggle Button -->
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                <!-- The user image in the navbar-->
+                <img th:src="@{/img/michel.jpg}" src="../static/img/michel.jpg" class="user-image" alt="User Image">
+                <!-- hidden-xs hides the username on small devices so only the image appears. -->
+                <span class="hidden-xs">Michel Mendes</span>
+              </a>
+              <ul class="dropdown-menu">
+                <!-- The user image in the menu -->
+                <li class="user-header">
+                  <img th:src="@{/img/michel.jpg}" src="../static/img/michel.jpg" class="img-circle" alt="User Image">
+                  <p>
+                    Michel Mendes - Web Developer
+                    <small>michelmdes@gmail.com</small>
+                  </p>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <!-- /.navbar-custom-menu -->
+      </div>
+      <!-- /.container-fluid -->
+    </nav>
+  </header>
+  <!-- Full Width Column -->
+  <div class="content-wrapper">
+    <div class="container">
+      <!-- Content Header (Page header) -->
+      <section class="content-header">
+        <h1> Gerenciador de Log </h1>
+      </section>
+
+      <!-- Main content -->
+      <section class="content">
+      
+        <div class="box box-primary">
+          <div class="box-header with-border">
+            <h3 class="box-title">Logs</h3>
+          </div>
+          <div class="box-body">
+	        <div class="form-group">
+	          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalAddLog">
+	              <i class="fa fa-plus"> </i>&nbsp; Novo
+	          </button>
+	          <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modalUploadLog">
+	              <i class="fa fa-upload"> </i>&nbsp; Importar Log
+	          </button>
+            </div> <!-- th:data-url="@{/logs} -->
+            <table data-toggle="table"
+			       th:data-url="${urlLog}"
+			       data-pagination="true"
+			       data-side-pagination="server"
+			       data-data-field="content"
+			       data-total-field="totalElements"
+			       data-sort-name="data"
+			       data-sort-order="DESC"
+			       data-silent-sort="true"
+			       data-query-params-type="">
+			    <thead>
+			    <tr>
+			        <th data-field="id" data-sortable="true" data-width="80px">ID</th>
+		            <th data-field="fileName" data-sortable="true">Name do arquivo</th>
+		            <th data-field="description" data-sortable="true">Descrição</th>
+		            <th data-field="dataFmt">Data</th>
+		            <th data-field="id" data-formatter="iconListData" data-width="40px" data-align="center"></th>
+		            <th data-field="id" data-formatter="iconDelete" data-width="40px" data-align="center"></th>
+			    </tr>
+			  </thead>
+			</table>
+	            
+          </div>
+          <div id="logLoading" class="overlay hide">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+        </div>
+        
+        <div id='dataLog'>
+        <div class="box box-primary">
+          <div class="box-header with-border">
+            <h3 class="box-title">Registros de Log</h3>
+          </div>
+          <div class="box-body">
+            <div>Clique no botão visualizar dados para listar os registros do log</div>
+          </div>
+          <div id="dataLogLoading" class="overlay hide">
+            <i class="fa fa-refresh fa-spin"></i>
+          </div>
+        </div>
+        </div>
+        
+      	<!-- Modal Add Log -->
+		<div class="modal fade" id="modalAddLog" tabindex="-1" role="dialog">
+		  <div class="modal-dialog" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		        <h4 class="modal-title" id="myModalLabel">Novo Log</h4>
+		      </div>
+		      <form action="#" th:object="${log}" method="post" class="form-horizontal">
+			      <div class="modal-body">
+			      
+	                <div class="form-group">
+	                  <label for="inputEmail3" class="col-sm-3 control-label">Nome do Arquivo</label>
+	                  <div class="col-sm-9">
+	                    <input type="text" class="form-control" th:field="*{fileName}" id="fileName">
+	                  </div>
+	                </div>
+	                <div class="form-group">
+	                  <label for="inputEmail3" class="col-sm-3 control-label">Descrição</label>
+	                  <div class="col-sm-9">
+	                    <input type="text" class="form-control" th:field="*{description}" id="description">
+	                  </div>
+	                </div>
+	              
+			      </div>
+			      <div class="modal-footer">
+			        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			        <button type="button" class="btn btn-primary" onclick="postLog();">Save</button>
+			      </div>
+		      </form>
+		    </div>
+		  </div>
+		</div>
+		
+		<!-- Modal Add Log -->
+		<div class="modal fade" id="modalUploadLog" tabindex="-1" role="dialog">
+		  <div class="modal-dialog" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		        <h4 class="modal-title" id="myModalLabel">Importar arquivo de Log</h4>
+		      </div>
+		      <form id="formUpload" action="#" class="form-horizontal" enctype="multipart/form-data">
+			      <div class="modal-body">
+			      
+	                <div class="form-group">
+	                  <label for="file" class="col-sm-3 control-label">Arquivo de log</label>
+	                  <div class="col-sm-9">
+	                    <input type="file" id="file" name="file" class="form-control">
+	              		<!-- <p class="help-block">Example block-level help text here.</p> -->
+	                  </div>
+	                </div>
+	              
+			      </div>
+			      <div class="modal-footer">
+			        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			        <button type="button" class="btn btn-primary" onclick="uploadLog();">Save</button>
+			      </div>
+		      </form>
+		    </div>
+		  </div>
+		</div>
+		
+      </section>
+      <!-- /.content -->
+    </div>
+    <!-- /.container -->
+  </div>
+  <!-- /.content-wrapper -->
+  <footer class="main-footer">
+    <div class="container">
+      <div class="pull-right hidden-xs">
+        <b>Version</b> 1.0.0
+      </div>
+      <strong>Copyright &copy; 2019.</strong> Teste Prevent Senior
+    </div>
+    <!-- /.container -->
+  </footer>
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery 3 -->
+<script th:src="@{/js/jquery.min.js}" src="../static/js/jquery.min.js"></script>
+<!-- Bootstrap 3.3.7 -->
+<script th:src="@{/js/bootstrap.min.js}" src="../static/js/bootstrap.min.js"></script>
+
+<script th:src="@{/bootstrap-table/ga.js}" src="../static/bootstrap-table/ga.js"></script>
+<script th:src="@{/bootstrap-table/src/bootstrap-table.js}" src="../static/bootstrap-table/src/bootstrap-table.js"></script>
+
+<!-- AdminLTE App -->
+<script th:src="@{/js/adminlte.min.js}" src="../static/js/adminlte.min.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script th:src="@{/js/demo.js}" src="../static/js/demo.js"></script>
+
+<script th:inline="javascript">
+
+	function loadLogData(id) {
+		if (id != null && id != '') {
+			var pid = 'dataLog';
+			var divId = '#' + pid;
+			$.ajax({
+		          url : [[@{/dataLog}]],
+		          type : 'get',
+		          data : {
+		        	  idLog : Number(id)
+		          },
+		          success : function(data){
+		        	  $(divId).html(data);
+		          },
+		          error : function(jqXHR, textStatus, msg){
+		        	  $(divId).html(msg);
+			      }
+			})
+			$("#dataLogLoading").removeClass("hide");
+		}
+	}
+	
+	function postLog() {
+		var name = $("#fileName").val();
+		var descr = $("#description").val();
+		if (name != "" && descr != "") {
+			$.ajax({
+		          url : [[${urlLog}]],
+		          type : 'post',
+		          data : {
+	        		  fileName : name,
+	        		  description : descr
+		          },
+		          success : function(data){
+		        	  alert("Log adicionado com sucesso!");
+		        	  location.reload();
+		          },
+		          error : function(jqXHR, textStatus, msg){
+		        	  alert("Não foi possível adicionar o log. " + msg);
+			      }
+			})
+		} else {
+			alert("Todos os campos são obrigatórios.");
+		}
+	}
+	
+	function removeLog(idLog) {
+		$.ajax({
+          url : [[${urlLog}]] +'/'+ idLog,
+          type : 'delete',
+          success : function(data){
+        	  alert("Log "+idLog+" apagado com sucesso!");
+        	  location.reload();
+          },
+          error : function(jqXHR, textStatus, msg){
+        	  alert("Não foi possível apagar o log. " + msg);
+        	  stopLoading();
+	      }
+		})
+		startLoading();
+	}
+	
+	function uploadLog(form) {
+	    
+	    var formData = new FormData($("#formUpload")[0]);
+
+	    $.ajax({
+	        url: [[${urlLog+'/upload'}]],
+	        type: 'post',
+	        data: formData,
+	        success: function(data) {
+	        	alert("Log importado com sucesso!");
+	        	location.reload();
+	        },
+	        error : function(jqXHR, textStatus, msg){
+	        	alert("Não foi possível importar o log. " + msg);
+	        	stopLoading();
+		    },
+	        cache: false,
+	        contentType: false,
+	        processData: false,
+	        enctype: 'multipart/form-data'
+	    });
+	    startLoading();
+	}
+	
+	function startLoading() {
+		$("#logLoading").removeClass("hide");
+		$("#dataLogLoading").removeClass("hide");
+	}
+	
+	function stopLoading() {
+		$("#logLoading").addClass("hide");
+  		$("#dataLogLoading").addClass("hide");
+	}
+	
+	loadLogData([[${idLog}]]);
+</script>
+
+</body>
+</html>

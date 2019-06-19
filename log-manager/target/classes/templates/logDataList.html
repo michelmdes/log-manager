@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <script>
+	function iconDeleteData(value) {
+	    return '<a href="javascript:removeLogData('+value+')" onclick="return confirm(\'Tem certeza que deseja apagar esse registro de log?\')" title="Apagar registro do log"><i class="fa fa-trash text-red" /></a>';
+	}
+  </script>
+
+<div class="box box-primary">
+	<div class="box-header with-border">
+		<h3 class="box-title">Registros de Log <small th:text="${'Id ('+idLog+')'}"></small></h3>
+	</div>
+	<div class="box-body">
+		<div class="form-group">
+			<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalAddLogData">
+				<i class="fa fa-plus"> </i>&nbsp; Novo
+			</button>
+		</div>
+		
+		<table id="logData" 
+			 data-toggle="table"
+		     th:data-url="${urlLogData}"
+		     data-pagination="true"
+		     data-side-pagination="server"
+		     data-data-field="content"
+		     data-total-field="totalElements"
+		     data-sort-name="data"
+		     data-sort-order="DESC"
+		     data-silent-sort="true"
+		     data-query-params-type="">
+		  <thead>
+		    <tr>
+		      <th data-field="id" data-sortable="true" data-width="80px">ID</th>
+			  <th data-field="dataFmt" data-sortable="true">Data</th>
+			  <th data-field="ip" data-sortable="true">IP</th>
+			  <th data-field="request" data-sortable="true">Request</th>
+			  <th data-field="status" data-sortable="true">Status</th>
+			  <th data-field="userAgent" data-sortable="true">User Agent</th>
+			  <th data-field="id" data-formatter="iconDeleteData" data-width="40px" data-align="center"></th>
+		    </tr>
+		  </thead>
+		</table>
+	</div>
+	<div id="dataLogLoading" class="overlay hide">
+      <i class="fa fa-refresh fa-spin"></i>
+    </div>	
+</div>
+
+<!-- Modal Add Log -->
+<div class="modal fade" id="modalAddLogData" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Novo Log</h4>
+      </div>
+        <form action="#" method="post" class="form-horizontal">
+	      <div class="modal-body">
+	      
+               <div class="form-group">
+                 <label for="inputEmail3" class="col-sm-3 control-label">Data</label>
+                 <div class="col-sm-9">
+                   <input type="date" class="form-control" id="dataFmt">
+                 </div>
+               </div>
+               <div class="form-group">
+                 <label for="inputEmail3" class="col-sm-3 control-label">IP</label>
+                 <div class="col-sm-9">
+                   <input type="text" class="form-control" id="ip">
+                 </div>
+               </div>
+               <div class="form-group">
+                 <label for="inputEmail3" class="col-sm-3 control-label">Request</label>
+                 <div class="col-sm-9">
+                   <input type="text" class="form-control" id="request">
+                 </div>
+               </div>
+               <div class="form-group">
+                 <label for="inputEmail3" class="col-sm-3 control-label">Status</label>
+                 <div class="col-sm-9">
+                   <input type="number" class="form-control" id="status">
+                 </div>
+               </div>
+               <div class="form-group">
+                 <label for="inputEmail3" class="col-sm-3 control-label">User Agent</label>
+                 <div class="col-sm-9">
+                   <input type="text" class="form-control" id="userAgent">
+                 </div>
+               </div>
+             
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	        <button type="button" class="btn btn-primary" onclick="postLogData();">Save</button>
+	      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+	function postLogData() {
+		var dataFmt = $("#dataFmt").val();
+		var ip = $("#ip").val();
+		var request = $("#request").val();
+		var status = $("#status").val();
+		var userAgent = $("#userAgent").val();
+		
+		if (dataFmt != "" && ip != "" && request != "" && status != "" && userAgent != "") {
+			$.ajax({
+		          url : [[${urlLogData}]],
+		          type : 'post',
+		          data : {
+		        	  dataFmt : dataFmt,
+		        	  ip : ip,
+		        	  request : request,
+		        	  status : status,
+		        	  userAgent : userAgent
+		          },
+		          success : function(data){
+		        	  alert("Log adicionado com sucesso!");
+		        	  location.replace([[@{/(idLog=(${idLog}))}]]);
+		          },
+		          error : function(jqXHR, textStatus, msg){
+		        	  alert("Não foi possível adicionar o log. " + msg);
+			      }
+			})
+		} else {
+			alert("Todos os campos são obrigatórios.");
+		}
+	}
+	
+	function removeLogData(idLogData) {
+		$.ajax({
+          url : [[${urlLogData}]] + '/' + idLogData,
+          type : 'delete',
+          success : function(data){
+        	  alert("Registro de log "+idLogData+" apagado com sucesso!");
+        	  location.replace([[@{/(idLog=(${idLog}))}]]);
+          },
+          error : function(jqXHR, textStatus, msg){
+        	  alert("Não foi possível apagar o registro de log. " + msg);
+        	  stopLoading();
+	      }
+		})
+		startLoading();
+	}
+
+</script>
+
+<script th:src="@{/bootstrap-table/ga.js}" src="../static/bootstrap-table/ga.js"></script>
+<script th:src="@{/bootstrap-table/src/bootstrap-table.js}" src="../static/bootstrap-table/src/bootstrap-table.js"></script>
+
+</html>
